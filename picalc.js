@@ -120,11 +120,12 @@ function showInputs(div, cmdt, parentName, neededPerInput =  1)
       let inputElem = document.createElement("div");
       let needed = neededPerInput * inp.tier.neededAsInput;
       let elementId = parentName + "-" + inp.name
-      inputElem.setAttribute('id', elementID);
+      inputElem.setAttribute('id', elementId);
       inputElem.innerText = " | " + needed + " " + inp.name;
-      div.appendChild(inputElem);
 
       if (inp.inputs) { showInputs(div, inp, elementId, needed/inp.tier.producedPerCycle); }
+
+      div.appendChild(inputElem);
     }
   }
 }
