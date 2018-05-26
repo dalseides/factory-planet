@@ -116,34 +116,44 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
 {
   // set up div for all inputs of a given distance from the final product
   let distanceElem = undefined;
-
   if (document.getElementById(parentName + recursionLevel)) 
   {  
-    console.log ("Found element " + parentName + recursionLevel);
     distanceElem = document.getElementById(parentName + recursionLevel);
   }
   else 
   {
-    console.log ("Creating element " + parentName + recursionLevel);
     distanceElem = document.getElementById(parentName + recursionLevel);
     distanceElem = document.createElement("div");
     distanceElem.setAttribute('id', parentName + recursionLevel);
     div.appendChild(distanceElem);
   }
 
+  // now go through each input, recursively, until we have built up
+  // the total inputs for each level
   for (let inp of cmdt.inputs) 
   {
-    let inputElem = document.createElement("div");
+    let elemName = parentName + '-' + inp.name;
+    let inputElem = undefined;
 
-    let needed = neededPerInput * inp.tier.neededAsInput;
-    let totalPrice = '';
-    totalPrice = inp.sellPrice * needed;
+    // lets find this node if it exists instead of making new one
+    for (let child of distanceElem.childNodes) { if (child.id == elemName) { inputElem = child } }
+    
+    // and let's create the element if it doesn't exist yet (likely)
+    if (!inputElem)
+    {
+      inputElem = document.createElement("div");
+      inputElem.setAttribute('id', elemName);
+      inputElem.needed = 0;
+      inputElem.totalPrice = 0;
+      distanceElem.appendChild(inputElem);
+    }
 
-    inputElem.innerText = " | " + needed + " " + inp.name + " :: " + totalPrice + " isk";
+    inputElem.needed = inputElem.needed + neededPerInput * inp.tier.neededAsInput;
+    inputElem.totalPrice = inp.sellPrice * inputElem.needed;
 
-    if (inp.inputs) { showInputs(div, inp, parentName, needed/inp.tier.producedPerCycle, recursionLevel + 1); }
+    inputElem.innerText = " | " + inputElem.needed + " " + inp.name + " :: " + inputElem.totalPrice + " isk";
 
-    distanceElem.appendChild(inputElem);
+    if (inp.inputs) { showInputs(div, inp, parentName, inputElem.needed/inp.tier.producedPerCycle, recursionLevel + 1); }
   }
 }
 
