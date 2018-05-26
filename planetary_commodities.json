@@ -1,0 +1,54 @@
+{
+  "tiers":
+  [
+    { "name":"1", "baseValue":400, "neededAsInput":40 },
+    { "name":"2", "baseValue":7200, "neededAsInput":20, "producedPerCycle":5 },
+    { "name":"3", "baseValue":60000, "neededAsInput":6, "producedPerCycle":3 },
+    { "name":"4", "baseValue":1200000, "producedPerCycle":1 }
+  ],
+  "commodities":
+  [
+    {"tierName":"1", "name":"Bacteria"},
+    {"tierName":"1", "name":"Biofuels"},
+    {"tierName":"1", "name":"Biomass"},
+    {"tierName":"1", "name":"Chiral Structures"},
+    {"tierName":"1", "name":"Electrolytes"},
+    {"tierName":"1", "name":"Industrial Fibers"},
+    {"tierName":"1", "name":"Oxidizing Compound"},
+    {"tierName":"1", "name":"Oxygen"},
+    {"tierName":"1", "name":"Plasmoids"},
+    {"tierName":"1", "name":"Precious Metals"},
+    {"tierName":"1", "name":"Proteins"},
+    {"tierName":"1", "name":"Reactive Metals"},
+    {"tierName":"1", "name":"Silicon"},
+    {"tierName":"1", "name":"Toxic Metals"},
+    {"tierName":"1", "name":"Water"},
+
+    {"tierName":"2", "name":"Biocells", "inputNames": ["Precious Metals", "Biofuels"]},
+    {"tierName":"2", "name":"Construction Blocks"},
+    {"tierName":"2", "name":"Consumer Electronics"},
+    {"tierName":"2", "name":"Coolant"},
+    {"tierName":"2", "name":"Enriched Uranium"},
+    {"tierName":"2", "name":"Fertilizer", "inputNames": ["Proteins", "Bacteria"]},
+    {"tierName":"2", "name":"Genetically Enhanced Livestock"},
+    {"tierName":"2", "name":"Livestock"},
+    {"tierName":"2", "name":"Mechanical Parts"},
+    {"tierName":"2", "name":"Microfiber Shielding"},
+    {"tierName":"2", "name":"Miniature Electronics"},
+    {"tierName":"2", "name":"Nanites"},
+    {"tierName":"2", "name":"Oxides"},
+    {"tierName":"2", "name":"Polyaramids"},
+    {"tierName":"2", "name":"Polytextiles"},
+    {"tierName":"2", "name":"Rocket Fuel"},
+    {"tierName":"2", "name":"Silicate Glass"},
+    {"tierName":"2", "name":"Superconductors"},
+    {"tierName":"2", "name":"Supertensile Plastics"},
+    {"tierName":"2", "name":"Synthetic Oil", "inputNames": ["Oxygen", "Electrolytes"]},
+    {"tierName":"2", "name":"Test Cultures", "inputNames": ["Water", "Bacteria"]},
+    {"tierName":"2", "name":"Transmitter"},
+    {"tierName":"2", "name":"Viral Agent"},
+    {"tierName":"2", "name":"Water-Cooled CPU"},
+
+    {"tierName":"3", "name":"Cryoprotectant Solution", "inputNames": ["Test Cultures", "Synthetic Oil", "Fertilizer"]}    
+  ]
+}
