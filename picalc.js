@@ -51,6 +51,8 @@ class Data
         { this.commodities.byTier[commodity.tier] = [commodity]; }
       else
         { this.commodities.byTier[commodity.tier].push(commodity); }
+
+      commodity.sellPrice = commodity.tier.baseValue;
     }
 
     for (let commodity of Object.values(this.commodities.byName))
@@ -104,30 +106,37 @@ function setup()
       totalPriceElem.setAttribute('id', cmdt.name + '_total_price');
       enclosingDiv.appendChild(totalPriceElem);
 
-      showInputs(enclosingDiv, cmdt, cmdt.name);
+      if (cmdt.inputs) { showInputs(enclosingDiv, cmdt, cmdt.name); }
 
       document.getElementsByTagName('body')[0].appendChild(enclosingDiv);
     }
   }
 }
 
-function showInputs(div, cmdt, parentName, neededPerInput =  1)
+function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 0)
 {
-  if (cmdt.inputs) 
+  // set up div for distance of input from final product
+  let distanceElem = document.createElement("div");
+
+  for (let inp of cmdt.inputs) 
   {
-    for (let inp of cmdt.inputs) 
-    {
-      let inputElem = document.createElement("div");
-      let needed = neededPerInput * inp.tier.neededAsInput;
-      let elementId = parentName + "-" + inp.name
-      inputElem.setAttribute('id', elementId);
-      inputElem.innerText = " | " + needed + " " + inp.name;
+    let inputElem = document.createElement("div");
 
-      if (inp.inputs) { showInputs(div, inp, elementId, needed/inp.tier.producedPerCycle); }
+    let elementId = parentName + "-" + inp.name
+    inputElem.setAttribute('id', elementId);
 
-      div.appendChild(inputElem);
-    }
+    let needed = neededPerInput * inp.tier.neededAsInput;
+    let totalPrice = '';
+    totalPrice = inp.sellPrice * needed;
+
+    inputElem.innerText = " | " + needed + " " + inp.name + " :: " + totalPrice + " isk";
+
+    if (inp.inputs) { showInputs(div, inp, elementId, needed/inp.tier.producedPerCycle); }
+
+    distanceElem.appendChild(inputElem);
   }
+
+  div.appendChild(distanceElem);
 }
 
 function getTax(item, itemPrice, baseValue, is_import) 
