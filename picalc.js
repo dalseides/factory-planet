@@ -52,7 +52,7 @@ class Data
       else
         { this.commodities.byTier[commodity.tier].push(commodity); }
 
-      commodity.sellPrice = commodity.tier.baseValue;
+      commodity.buyPrice = commodity.tier.baseValue;
     }
 
     for (let commodity of Object.values(this.commodities.byName))
@@ -154,9 +154,9 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
       distanceElem.appendChild(inputElem);
     }
 
-    distanceElem.cost.total += inp.sellPrice * (neededPerInput * inp.tier.neededAsInput);
+    distanceElem.cost.total += inp.buyPrice * (neededPerInput * inp.tier.neededAsInput);
     inputElem.needed += + neededPerInput * inp.tier.neededAsInput;
-    inputElem.totalPrice = inp.sellPrice * inputElem.needed;
+    inputElem.totalPrice = inp.buyPrice * inputElem.needed;
 
     inputElem.innerText = " | " + inputElem.needed + " " + inp.name + " :: " + inputElem.totalPrice + " isk";
 
