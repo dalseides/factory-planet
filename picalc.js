@@ -80,13 +80,13 @@ function setup()
     for (let cmdt of tier.commodities)
     {
       // outer div
-      var enclosingDiv = document.createElement("div");
+      var enclosingDiv = document.createElement('div');
       enclosingDiv.setAttribute('id', cmdt.name);
       enclosingDiv.innerHTML = cmdt.name + ": ";
       document.getElementsByTagName('body')[0].appendChild(enclosingDiv);
 
       // price paid for good
-      var price = document.createElement("input");
+      var price = document.createElement('input');
       price.setAttribute('id', cmdt.name + '_price');
       price.setAttribute('type', 'number');
       price.setAttribute('value', baseValue);
@@ -116,6 +116,7 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
 {
   // set up div for all inputs of a given distance from the final product
   let distanceElem = undefined;
+  let inputCostPerDistance = undefined;
   if (document.getElementById(parentName + recursionLevel)) 
   {  
     distanceElem = document.getElementById(parentName + recursionLevel);
@@ -123,8 +124,13 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
   else 
   {
     distanceElem = document.getElementById(parentName + recursionLevel);
-    distanceElem = document.createElement("div");
+    distanceElem = document.createElement('div');
     distanceElem.setAttribute('id', parentName + recursionLevel);
+    inputCostPerDistance = document.createElement('div');
+    inputCostPerDistance.setAttribute('id', parentName + recursionLevel + 'price');
+    inputCostPerDistance.total = 0;
+    distanceElem.appendChild(inputCostPerDistance);
+    distanceElem.cost = inputCostPerDistance;
     div.appendChild(distanceElem);
   }
 
@@ -141,20 +147,23 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
     // and let's create the element if it doesn't exist yet (likely)
     if (!inputElem)
     {
-      inputElem = document.createElement("div");
+      inputElem = document.createElement('div');
       inputElem.setAttribute('id', elemName);
       inputElem.needed = 0;
       inputElem.totalPrice = 0;
       distanceElem.appendChild(inputElem);
     }
 
-    inputElem.needed = inputElem.needed + neededPerInput * inp.tier.neededAsInput;
+    distanceElem.cost.total += inp.sellPrice * (neededPerInput * inp.tier.neededAsInput);
+    inputElem.needed += + neededPerInput * inp.tier.neededAsInput;
     inputElem.totalPrice = inp.sellPrice * inputElem.needed;
 
     inputElem.innerText = " | " + inputElem.needed + " " + inp.name + " :: " + inputElem.totalPrice + " isk";
 
     if (inp.inputs) { showInputs(div, inp, parentName, inputElem.needed/inp.tier.producedPerCycle, recursionLevel + 1); }
   }
+
+  distanceElem.cost.innerText = '----- total price at this level: ' + distanceElem.cost.total + ' ---------';
 }
 
 function getTax(item, itemPrice, baseValue, is_import) 
