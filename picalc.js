@@ -83,6 +83,7 @@ function setup()
       var enclosingDiv = document.createElement("div");
       enclosingDiv.setAttribute('id', cmdt.name);
       enclosingDiv.innerHTML = cmdt.name + ": ";
+      document.getElementsByTagName('body')[0].appendChild(enclosingDiv);
 
       // price paid for good
       var price = document.createElement("input");
@@ -107,23 +108,32 @@ function setup()
       enclosingDiv.appendChild(totalPriceElem);
 
       if (cmdt.inputs) { showInputs(enclosingDiv, cmdt, cmdt.name); }
-
-      document.getElementsByTagName('body')[0].appendChild(enclosingDiv);
     }
   }
 }
 
 function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 0)
 {
-  // set up div for distance of input from final product
-  let distanceElem = document.createElement("div");
+  // set up div for all inputs of a given distance from the final product
+  let distanceElem = undefined;
+
+  if (document.getElementById(parentName + recursionLevel)) 
+  {  
+    console.log ("Found element " + parentName + recursionLevel);
+    distanceElem = document.getElementById(parentName + recursionLevel);
+  }
+  else 
+  {
+    console.log ("Creating element " + parentName + recursionLevel);
+    distanceElem = document.getElementById(parentName + recursionLevel);
+    distanceElem = document.createElement("div");
+    distanceElem.setAttribute('id', parentName + recursionLevel);
+    div.appendChild(distanceElem);
+  }
 
   for (let inp of cmdt.inputs) 
   {
     let inputElem = document.createElement("div");
-
-    let elementId = parentName + "-" + inp.name
-    inputElem.setAttribute('id', elementId);
 
     let needed = neededPerInput * inp.tier.neededAsInput;
     let totalPrice = '';
@@ -131,12 +141,10 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
 
     inputElem.innerText = " | " + needed + " " + inp.name + " :: " + totalPrice + " isk";
 
-    if (inp.inputs) { showInputs(div, inp, elementId, needed/inp.tier.producedPerCycle); }
+    if (inp.inputs) { showInputs(div, inp, parentName, needed/inp.tier.producedPerCycle, recursionLevel + 1); }
 
     distanceElem.appendChild(inputElem);
   }
-
-  div.appendChild(distanceElem);
 }
 
 function getTax(item, itemPrice, baseValue, is_import) 
