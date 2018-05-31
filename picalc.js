@@ -10,7 +10,16 @@ class Tier
 
 class Commodity
 {
-  constructor(properties) { for (let property in properties) this[property] = properties[property]; }
+  constructor(properties) 
+  { 
+    for (let property in properties) 
+    {
+      this[property] = properties[property]; 
+
+      this.inputs = { byDistance: {} };
+      this.callbacks = [];
+    }
+  }
 }
 
 class Data
@@ -53,17 +62,33 @@ class Data
         { this.commodities.byTier[commodity.tier].push(commodity); }
 
       commodity.buyPrice = commodity.tier.baseValue;
+      commodity.sellPrice = commodity.tier.baseValue;
     }
 
+    // This loops through and adds inputs for the commodity.
     for (let commodity of Object.values(this.commodities.byName))
-    {
-      if (commodity.inputNames != null)
-      {
-        let newInputs = commodity.inputNames.map(inputName => this.commodities.byName[inputName]);
-        if (commodity.inputs == null) { commodity.inputs = newInputs; }
-        else { commodity.inputs = commodity.inputs.concat(newInputs); }
-      }
-    }
+      { if (commodity.inputNames != null) getInputs(this, commodity, commodity); }
+  }
+}
+
+// recursively build up the inputs 
+function getInputs(data, grandcommodity, commodity, distance = 0)
+{
+  let newInputs = commodity.inputNames.map(inputName => data.commodities.byName[inputName]);
+
+  for (let inp of newInputs)
+  { 
+   // distanceElem.cost.total += inp.buyPrice * (neededPerInput * inp.tier.neededAsInput);
+   // inputElem.needed += neededPerInput * inp.tier.neededAsInput;
+
+    let tuple = { input: inp, quantity: inp.tier.neededAsInput };
+
+    if (grandcommodity.inputs.byDistance[distance] == null) 
+      { grandcommodity.inputs.byDistance[distance] = [inp]; }
+    else 
+      { grandcommodity.inputs.byDistance[distance].push(inp); }
+
+    if (inp.inputNames != null) { getInputs(data, grandcommodity, inp, distance + 1); }
   }
 }
 
@@ -90,7 +115,7 @@ function setup()
       price.setAttribute('id', cmdt.name + '_price');
       price.setAttribute('type', 'number');
       price.setAttribute('value', baseValue);
-      price.setAttribute('onchange', "printTax('" + cmdt.name + "');");
+      price.setAttribute('onchange', "updateCommodity('" + cmdt.name + "');");
       enclosingDiv.appendChild(price);
 
       // 'value' assumed for planetary commodity for tax
@@ -107,7 +132,7 @@ function setup()
       totalPriceElem.setAttribute('id', cmdt.name + '_total_price');
       enclosingDiv.appendChild(totalPriceElem);
 
-      if (cmdt.inputs) { showInputs(enclosingDiv, cmdt, cmdt.name); }
+      if (cmdt.inputs.byDistance[0]) { showInputs(enclosingDiv, cmdt, cmdt.name); }
     }
   }
 }
@@ -136,7 +161,7 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
 
   // now go through each input, recursively, until we have built up
   // the total inputs for each level
-  for (let inp of cmdt.inputs) 
+  for (let inp of cmdt.inputs.byDistance[0]) 
   {
     let elemName = parentName + '-' + inp.name;
     let inputElem = undefined;
@@ -155,12 +180,13 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
     }
 
     distanceElem.cost.total += inp.buyPrice * (neededPerInput * inp.tier.neededAsInput);
-    inputElem.needed += + neededPerInput * inp.tier.neededAsInput;
+    inputElem.needed += neededPerInput * inp.tier.neededAsInput;
     inputElem.totalPrice = inp.buyPrice * inputElem.needed;
 
     inputElem.innerText = " | " + inputElem.needed + " " + inp.name + " :: " + inputElem.totalPrice + " isk";
 
-    if (inp.inputs) { showInputs(div, inp, parentName, inputElem.needed/inp.tier.producedPerCycle, recursionLevel + 1); }
+    if (inp.inputs.byDistance[0]) 
+      { showInputs(div, inp, parentName, inputElem.needed/inp.tier.producedPerCycle, recursionLevel + 1); }
   }
 
   distanceElem.cost.innerText = '----- total price at this level: ' + distanceElem.cost.total + ' ---------';
@@ -177,13 +203,18 @@ function getTax(item, itemPrice, baseValue, is_import)
     return totalPrice;
 }
 
-function printTax(item)
+function updateCommodity(item)
 {
     var itemPrice = parseFloat(document.getElementById(item + "_price").value);
     var basePrice = parseFloat(document.getElementById(item + "_base_price").innerText);
     var totalPrice = getTax(item, itemPrice, basePrice, true);
 
     document.getElementById(item + "_total_price").innerText = " " + totalPrice;
+
+    for (let callb of item.callbacks)
+    {
+      console.log('calling back on ' + callb);
+    }
 }
 
 function getData() 
@@ -198,7 +229,7 @@ function getData()
     }
   };
 
-  xmlhttp.open("GET", "https://tspi.io/planetary_commodities.json", true);
+  xmlhttp.open("GET", "https://tspi.io/factory-planet/planetary_commodities.json", true);
   xmlhttp.send();
 }
 
