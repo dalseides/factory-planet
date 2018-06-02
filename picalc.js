@@ -27,32 +27,28 @@ class Data
   constructor(data)
   {
     // set up the tier definitions
-    this.tiers = { byName: {} };
+    this.tiers = { };
 
     // associate and index the tiers
     for (let tierData of data.tiers)
     {
       let tier = new Tier(tierData);
-      this.tiers.byName[tier.name] = tier;
+      this.tiers[tier.name] = tier;
     }
 
     // associate and index the commodities
-    this.commodities = 
-    {
-      byName: {},
-      byTier: {},
-    };
+    this.commodities = { byTier: {} };
 
     for (let commodityData of data.commodities)
     {
       let commodity = new Commodity(commodityData);
 
       // Index commodities by name
-      this.commodities.byName[commodity.name] = commodity;
+      this.commodities[commodity.name] = commodity;
 
       // this looks weird but basically just sets a bi-directional reference
       // between a particular commodity and the tier it is in
-      commodity.tier = this.tiers.byName[commodity.tierName];
+      commodity.tier = this.tiers[commodity.tierName];
       commodity.tier.commodities.push(commodity);
 
       // This indexes commodities by tier
@@ -66,7 +62,7 @@ class Data
     }
 
     // This loops through and adds inputs for the commodity.
-    for (let commodity of Object.values(this.commodities.byName))
+    for (let commodity of Object.values(this.commodities))
       { if (commodity.inputNames != null) getInputs(this, commodity, commodity); }
   }
 }
@@ -74,22 +70,37 @@ class Data
 // recursively build up the inputs 
 function getInputs(data, grandcommodity, commodity, distance = 0, neededPerInput = 1)
 {
-  let newInputs = commodity.inputNames.map(inputName => data.commodities.byName[inputName]);
+  let newInputs = commodity.inputNames.map(inputName => data.commodities[inputName]);
   if (grandcommodity.inputs.byDistance[distance] == undefined)
-    { grandcommodity.inputs.byDistance[distance] = { byName: {} }; }
+    { grandcommodity.inputs.byDistance[distance] = { cost: 0, commodities: {}}; }
   let inpByD = grandcommodity.inputs.byDistance[distance];
 
   for (let inp of newInputs)
   { 
-    let tuple = inpByD.byName[inp.name] == undefined ?
+    let tuple = inpByD.commodities[inp.name] == undefined ?
       { input: inp, quantity: 0 } : 
-      inpByD.byName[inp.name];
+      inpByD.commodities[inp.name];
 
     tuple.quantity += neededPerInput * inp.tier.neededAsInput;
-    inpByD.byName[inp.name] = tuple;
+    inpByD.commodities[inp.name] = tuple;
 
     if (inp.inputNames != null) 
       { getInputs(data, grandcommodity, inp, distance + 1, tuple.quantity /inp.tier.producedPerCycle ); }
+  }
+}
+
+function calculateCosts(commodity)
+{
+  let distances = commodity.inputs.byDistance;
+  for (let distance in distances)
+  {
+    let dist = distances[distance];
+    dist.cost = 0;
+    for (let cmdt in dist.commodities)
+    {
+      let commodity = dist.commodities[cmdt];
+      dist.cost += commodity.input.buyPrice * commodity.quantity;
+    }
   }
 }
 
@@ -98,9 +109,9 @@ function setup()
   tiers = window.data.tiers;
   commodities = window.data.commodities;
   
-  for (let tierNo of Object.keys(tiers.byName))
+  for (let tierNo of Object.keys(tiers))
   {
-    var tier = tiers.byName[tierNo];
+    var tier = tiers[tierNo];
     var baseValue = tier.baseValue;
 
     for (let cmdt of tier.commodities)
@@ -162,7 +173,7 @@ function showInputs(div, cmdt, parentName, neededPerInput = 1, recursionLevel = 
 
   // now go through each input, recursively, until we have built up
   // the total inputs for each level
-  for (let inpTuple of Object.values(cmdt.inputs.byDistance[0].byName))
+  for (let inpTuple of Object.values(cmdt.inputs.byDistance[0].commodities))
   {
     let inp = inpTuple.input;
     let elemName = parentName + '-' + inp.name;
