@@ -22,6 +22,7 @@ function setup()
     {
       // outer div
       var enclosingDiv = document.createElement('div');
+      enclosingDiv.commodity = cmdt;
       enclosingDiv.setAttribute('id', cmdt.name.replace(/ /g,'_'));
       enclosingDiv.innerHTML = cmdt.name + ": ";
       document.getElementsByTagName('body')[0].appendChild(enclosingDiv);
@@ -32,20 +33,16 @@ function setup()
       price.setAttribute('type', 'number');
       price.setAttribute('value', baseValue);
       price.setAttribute('onchange', "updateCommodity('" + cmdt.name + "');");
+      cmdt.buyPriceDiv = price;
       enclosingDiv.appendChild(price);
 
-      // 'value' assumed for planetary commodity for tax
-      var basePrice = document.createElement("paragraph");
-      basePrice.style.display = 'none';
-      basePrice.setAttribute('id', cmdt.name.replace(/ /g,'_') + "_base_price");
-      basePrice.innerText = baseValue;
-      enclosingDiv.appendChild(basePrice);
-
       // price paid plus tax to import
-      var totalPriceElem = document.createElement("paragraph");
+      var totalPriceElem = document.createElement("p");
       var totalPriceVal = getTax(cmdt.name, baseValue, baseValue, true);
       totalPriceElem.innerText = " " + totalPriceVal;
       totalPriceElem.setAttribute('id', cmdt.name.replace(/ /g,'_') + '_total_price');
+      cmdt.totalImportCost = totalPriceElem;
+
       enclosingDiv.appendChild(totalPriceElem);
 
       if (cmdt.inputs.byDistance[0]) { displayInputs(enclosingDiv, cmdt); }
@@ -73,7 +70,7 @@ function displayInputs(div, cmdt)
       totalCost = document.createElement('div');
       totalCost.setAttribute('id', id + distance + '_price');
       totalCost.total = dist.cost;
-      totalCost.innerText = '----- total price at this level: ' + totalCost.total + ' ---------';
+      totalCost.innerText = '----- total cost at this level: ' + totalCost.total + ' ---------';
       distElem.appendChild(totalCost);
       div.appendChild(distElem);
     }
@@ -105,27 +102,28 @@ function displayInputs(div, cmdt)
 
 function getTax(item, itemPrice, baseValue, is_import) 
 {
-    var tax = (document.getElementById("tax_rate").value);
-    var effectiveTax = is_import ? 0.5 * tax : tax;
-    var importCost = baseValue * effectiveTax
-    
-    var totalPrice = importCost + itemPrice;
+  var tax = (document.getElementById("tax_rate").value);
+  var effectiveTax = is_import ? 0.5 * tax : tax;
+  var importCost = baseValue * effectiveTax
+  
+  var totalPrice = importCost + itemPrice;
 
-    return totalPrice;
+  return totalPrice;
 }
 
-function updateCommodity(item)
+function updateCommodity(itemName)
 {
-    var itemPrice = parseFloat(document.getElementById(item + "_price").value);
-    var basePrice = parseFloat(document.getElementById(item + "_base_price").innerText);
-    var totalPrice = getTax(item, itemPrice, basePrice, true);
+  let item = window.data.commodities[itemName];
+  var itemPrice = parseFloat(item.buyPriceDiv.value);
+  var basePrice = item.tier.baseValue;
+  var totalPrice = getTax(item, itemPrice, basePrice, true);
 
-    document.getElementById(item + "_total_price").innerText = " " + totalPrice;
+  item.totalImportCost.innerText = " " + totalPrice;
 
-    for (let callb of item.callbacks)
-    {
-      console.log('calling back on ' + callb);
-    }
+  for (let callb of item.callbacks)
+  {
+    console.log('calling back on ' + callb);
+  }
 }
 
 function getData() 

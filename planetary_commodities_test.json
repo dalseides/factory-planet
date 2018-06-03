@@ -1,0 +1,24 @@
+{
+  "tax":0.15,
+  "tiers":
+  [
+    { "name":"1", "baseValue":400, "neededAsInput":40 },
+    { "name":"2", "baseValue":7200, "neededAsInput":20, "producedPerCycle":5 },
+    { "name":"3", "baseValue":60000, "neededAsInput":6, "producedPerCycle":3 },
+    { "name":"4", "baseValue":1200000, "producedPerCycle":1 }
+  ],
+  "commodities":
+  [
+    {"tierName":"1", "name":"Bacteria"},
+    {"tierName":"1", "name":"Electrolytes"},
+    {"tierName":"1", "name":"Oxygen"},
+    {"tierName":"1", "name":"Proteins"},
+    {"tierName":"1", "name":"Water"},
+
+    {"tierName":"2", "name":"Fertilizer", "inputNames": ["Proteins", "Bacteria"]},
+    {"tierName":"2", "name":"Synthetic Oil", "inputNames": ["Oxygen", "Electrolytes"]},
+    {"tierName":"2", "name":"Test Cultures", "inputNames": ["Water", "Bacteria"]},
+
+    {"tierName":"3", "name":"Cryoprotectant Solution", "inputNames": ["Test Cultures", "Synthetic Oil", "Fertilizer"]}    
+  ]
+}

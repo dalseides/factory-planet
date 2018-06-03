@@ -89,18 +89,14 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
     let tuple = inpByD.commodities[inp.name] == undefined ?
       { input: inp, quantity: 0, importCost: 0 } : 
       inpByD.commodities[inp.name];
-    console.log("Evaluating " + grandcommodity.name + " dist " + distance + " input " + inp.name);
 
     // basic costs
     tuple.quantity += neededPerInput * inp.tier.neededAsInput;
     tuple.importCost = tuple.quantity * inp.buyPrice;
-    console.log(inp.name + " basic cost: " + tuple.importCost);
 
     // + import tax
     let tax = data.tax * tuple.quantity * inp.tier.baseValue / 2;
     tuple.importCost += tax; 
-    console.log(inp.name + " tax: " + tax);
-    console.log(inp.name + " cost + tax: " + tuple.importCost);
 
     inpByD.commodities[inp.name] = tuple;
 
