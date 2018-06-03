@@ -1,11 +1,14 @@
 function setup() 
 {
   // set up tax div
-//  var taxDiv = document.createElement('div');
-//  taxDiv.setAttribute('id', 'tax_rate');
-//  taxDiv.setAttribute('type', 'number');
-//  taxDiv.setAttribute('value', window.data.tax);
-//  document.getElementsByTagName('body')[0].appendChild(taxDiv);
+  var taxDiv = document.createElement('div');
+  taxDiv.innerText = 'Tax rate: ';
+  var taxInput = document.createElement('input');
+  taxInput.setAttribute('id', 'tax_rate');
+  taxInput.setAttribute('type', 'number');
+  taxInput.setAttribute('value', window.data.tax);
+  taxDiv.appendChild(taxInput);
+  document.getElementsByTagName('body')[0].appendChild(taxDiv);
   
   tiers = window.data.tiers;
   commodities = window.data.commodities;
@@ -102,7 +105,7 @@ function displayInputs(div, cmdt)
 
 function getTax(item, itemPrice, baseValue, is_import) 
 {
-    var tax = (document.getElementById("tax_rate").value)/100;
+    var tax = (document.getElementById("tax_rate").value);
     var effectiveTax = is_import ? 0.5 * tax : tax;
     var importCost = baseValue * effectiveTax
     
