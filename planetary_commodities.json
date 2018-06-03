@@ -1,4 +1,5 @@
 {
+  "tax":0.15,
   "tiers":
   [
     { "name":"1", "baseValue":400, "neededAsInput":40 },
