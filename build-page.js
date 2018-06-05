@@ -35,7 +35,6 @@ function setup()
       price.setAttribute('value', baseValue);
       price.setAttribute('commodity', cmdt.name);
       price.setAttribute('onchange', "updateCommodity(this);");
-      cmdt.buyPriceDiv = price;
       enclosingDiv.appendChild(price);
 
       if (cmdt.inputs.byDistance[0]) { displayInputs(enclosingDiv, cmdt); }
@@ -64,6 +63,7 @@ function displayInputs(div, cmdt)
       totalCost.setAttribute('id', id + distance + '_price');
       totalCost.total = dist.cost;
       totalCost.innerText = '----- total cost at this level: ' + totalCost.total + ' ---------';
+      dist.div = totalCost;
       distElem.appendChild(totalCost);
       div.appendChild(distElem);
     }
@@ -86,6 +86,7 @@ function displayInputs(div, cmdt)
         inputElem.totalPrice = comm.importCost;
         distElem.appendChild(inputElem);
 
+        comm.div = inputElem;
         inputElem.innerText = " | " + inputElem.needed + " " + comm.input.name + " :: " + inputElem.totalPrice + " isk";
       }
     }

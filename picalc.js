@@ -79,9 +79,9 @@ class Data
           ( 
             function() 
             { 
-              commodity.inputs.byDistance = {};
-              setupInputs(window.data, commodity, commodity);
+              setupInputs(window.data, commodity, commodity, 0, 0);
               calculateCosts(window.data, commodity); 
+
               return commodity.name; 
             }
           );
@@ -115,6 +115,7 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
     tuple.importCost += tax; 
 
     inpByD.commodities[inp.name] = tuple;
+    if (tuple.div) { tuple.div.innerText = " | " + tuple.quantity + " " + inp.name + " :: " + tuple.importCost + " isk"; }
 
     // also whenever the input price changes we should probably
     // do something about that
@@ -122,13 +123,12 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
       (
         function()
         {
-          console.log('Running callback on ' + tuple.input.name);
           tuple.importCost = tuple.quantity * inp.buyPrice;
-          
-          let tax = data.tax * tuple.quantity * inp.tier.baseValue / 2;
-          tuple.importCost += tax; 
+          tuple.importCost += data.tax * tuple.quantity * inp.tier.baseValue / 2;
+
           inpByD.commodities[inp.name] = tuple;
 
+          tuple.div.innerText = " | " + tuple.quantity + " " + inp.name + " :: " + tuple.importCost + " isk";
           calculateCosts(data, grandcommodity, distance);
         }
       );
@@ -151,6 +151,8 @@ function calculateCosts(data, commodity, inputDistance)
       let commodity = dist.commodities[cmdt];
       dist.cost += commodity.importCost;
     }
+
+    if (dist.div) { dist.div.innerText = '----- total cost at this level: ' + dist.cost + ' ---------'; }
   }
 }
 
