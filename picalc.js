@@ -28,6 +28,8 @@ class Data
   {
     // set up the tier definitions
     this.tax = data.tax;
+    this.taxCallbacks = [];
+
     this.tiers = { };
 
     // associate and index the tiers
@@ -69,6 +71,17 @@ class Data
       {
         setupInputs(this, commodity, commodity); 
         calculateCosts(this, commodity);
+        this.taxCallbacks.push
+          ( 
+            function() 
+            { 
+              // I really don't like this.
+              // I very much wish I could pass 'this' instead of window.data
+              // But 'this' doesn't fully exist yet.
+              calculateCosts(window.data, commodity); 
+              return commodity.name; 
+            }
+          );
       }
     }
   }
