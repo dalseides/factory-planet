@@ -129,7 +129,7 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
           inpByD.commodities[inp.name] = tuple;
 
           tuple.div.innerText = " | " + tuple.quantity + " " + inp.name + " :: " + tuple.importCost + " isk";
-          calculateCosts(data, grandcommodity, distance);
+          calculateCosts(data, grandcommodity);
         }
       );
 
@@ -152,7 +152,11 @@ function calculateCosts(data, commodity, inputDistance)
       dist.cost += commodity.importCost;
     }
 
-    if (dist.div) { dist.div.innerText = '----- total cost at this level: ' + dist.cost + ' ---------'; }
+    if (dist.div) 
+    { 
+      dist.div.innerText = '----- cost: ' + dist.cost + 
+        ' profit: ' + (commodity.sellPrice - (dist.cost / commodity.tier.producedPerCycle)) + ' ---------';
+    }
   }
 }
 
