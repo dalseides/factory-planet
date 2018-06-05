@@ -33,7 +33,8 @@ function setup()
       price.setAttribute('id', cmdt.name.replace(/ /g,'_') + '_price');
       price.setAttribute('type', 'number');
       price.setAttribute('value', baseValue);
-      price.setAttribute('onchange', "updateCommodity('" + cmdt.name + "');");
+      price.setAttribute('commodity', cmdt.name);
+      price.setAttribute('onchange', "updateCommodity(this);");
       cmdt.buyPriceDiv = price;
       enclosingDiv.appendChild(price);
 
@@ -91,14 +92,12 @@ function displayInputs(div, cmdt)
   }
 }
 
-function updateCommodity(itemName)
+function updateCommodity(itemPriceElem)
 {
-  let item = window.data.commodities[itemName];
+  let item = window.data.commodities[itemPriceElem.getAttribute('commodity')];
+  item.buyPrice = itemPriceElem.value;
 
-  for (let callb of item.callbacks)
-  {
-    console.log('calling back on ' + callb);
-  }
+  for (let callback of item.callbacks) { callback(); }
 }
 
 function updateWithNewTax(newTax = 0.15)

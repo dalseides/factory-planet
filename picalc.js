@@ -71,13 +71,16 @@ class Data
       {
         setupInputs(this, commodity, commodity); 
         calculateCosts(this, commodity);
+
+        // aaaaand whenever the tax rate changes pretty much
+        // EVERYTHING needs to be recalculated, gross though
+        // this is (and this is very, very gross).
         this.taxCallbacks.push
           ( 
             function() 
             { 
-              // I really don't like this.
-              // I very much wish I could pass 'this' instead of window.data
-              // But 'this' doesn't fully exist yet.
+              commodity.inputs.byDistance = {};
+              setupInputs(window.data, commodity, commodity);
               calculateCosts(window.data, commodity); 
               return commodity.name; 
             }
@@ -113,14 +116,31 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
 
     inpByD.commodities[inp.name] = tuple;
 
+    // also whenever the input price changes we should probably
+    // do something about that
+    inp.callbacks.push
+      (
+        function()
+        {
+          console.log('Running callback on ' + tuple.input.name);
+          tuple.importCost = tuple.quantity * inp.buyPrice;
+          
+          let tax = data.tax * tuple.quantity * inp.tier.baseValue / 2;
+          tuple.importCost += tax; 
+          inpByD.commodities[inp.name] = tuple;
+
+          calculateCosts(data, grandcommodity, distance);
+        }
+      );
+
     if (inp.inputNames != null) 
       { setupInputs(data, grandcommodity, inp, distance + 1, tuple.quantity /inp.tier.producedPerCycle ); }
   }
 }
 
-function calculateCosts(data, commodity)
+function calculateCosts(data, commodity, inputDistance)
 {
-  let distances = commodity.inputs.byDistance;
+  let distances = inputDistance ? [ inputDistance ] : commodity.inputs.byDistance;
   let exportTax = commodity.tier.baseValue * data.tax;
   for (let distance in distances)
   {
