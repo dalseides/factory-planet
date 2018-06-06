@@ -29,8 +29,7 @@ class Data
     // set up the tier definitions
     this.tax = data.tax;
     this.taxCallbacks = [];
-
-    this.tiers = { };
+    this.tiers = {};
 
     // associate and index the tiers
     for (let tierData of data.tiers)
@@ -70,21 +69,9 @@ class Data
       if (commodity.inputNames != null) 
       {
         setupInputs(this, commodity, commodity); 
-        calculateCosts(this, commodity);
 
-        // aaaaand whenever the tax rate changes pretty much
-        // EVERYTHING needs to be recalculated, gross though
-        // this is (and this is very, very gross).
-        this.taxCallbacks.push
-          ( 
-            function() 
-            { 
-              setupInputs(window.data, commodity, commodity, 0, 0);
-              calculateCosts(window.data, commodity); 
-
-              return commodity.name; 
-            }
-          );
+        // is there a way to do this without the verbose lambda declaration?
+        this.taxCallbacks.push( function() { setupInputs(window.data, commodity, commodity, 0, 0); });
       }
     }
   }
@@ -102,20 +89,21 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
   // the total inputs for each level
   for (let inp of newInputs)
   { 
-    let tuple = inpByD.commodities[inp.name] == undefined ?
-      { input: inp, quantity: 0, importCost: 0 } : 
-      inpByD.commodities[inp.name];
+    let tuple = undefined;
+    if (inpByD.commodities[inp.name] == undefined)
+    {
+      tuple = { input: inp, quantity: 0, importCost: 0 };
+    }
+    else
+    {
+      tuple = inpByD.commodities[inp.name];
+    }
 
-    // basic costs
+    // figure out how many of these we need
     tuple.quantity += neededPerInput * inp.tier.neededAsInput;
-    tuple.importCost = tuple.quantity * inp.buyPrice;
 
-    // + import tax
-    let tax = data.tax * tuple.quantity * inp.tier.baseValue / 2;
-    tuple.importCost += tax; 
-
+    tuple = calculateInputCost(data, tuple);
     inpByD.commodities[inp.name] = tuple;
-    if (tuple.div) { tuple.div.innerText = " | " + tuple.quantity + " " + inp.name + " :: " + tuple.importCost + " isk"; }
 
     // also whenever the input price changes we should probably
     // do something about that
@@ -123,26 +111,38 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
       (
         function()
         {
-          tuple.importCost = tuple.quantity * inp.buyPrice;
-          // console.log(tuple.input.name + ' base cost: ' + tuple.quantity + ' * ' + inp.buyPrice + ' = ' + tuple.importCost);
-          tuple.importCost += data.tax * tuple.quantity * inp.tier.baseValue / 2;
-          // console.log(' plus taxes: ' + data.tax + ' * ' + tuple.quantity + ' * ' + inp.tier.baseValue + ' / 2 = ' + tuple.importCost);
-
-          inpByD.commodities[inp.name] = tuple;
-
-          tuple.div.innerText = " | " + tuple.quantity + " " + inp.name + " :: " + tuple.importCost + " isk";
-          calculateCosts(data, grandcommodity);
+          calculateInputCost(data, tuple);
+          calculateCostsByDistance(data, grandcommodity);
         }
       );
 
     if (inp.inputNames != null) 
       { setupInputs(data, grandcommodity, inp, distance + 1, tuple.quantity /inp.tier.producedPerCycle ); }
   }
+
+  calculateCostsByDistance(data, grandcommodity);
 }
 
-function calculateCosts(data, commodity, inputDistance)
+function calculateInputCost(data, tuple)
 {
-  let distances = inputDistance ? [ inputDistance ] : commodity.inputs.byDistance;
+  let inp = tuple.input;
+  tuple.importCost = tuple.quantity * inp.buyPrice;
+  tuple.importCost += data.tax * tuple.quantity * inp.tier.baseValue / 2;
+
+  if (tuple.div) 
+  { 
+    tuple.div.innerText = 
+      " | " + tuple.quantity + " " 
+      + inp.name + " :: " 
+      + tuple.importCost + " isk"; 
+  }
+
+  return tuple;
+}
+
+function calculateCostsByDistance(data, commodity)
+{
+  let distances = commodity.inputs.byDistance;
   let exportTax = commodity.tier.baseValue * data.tax;
   for (let distance in distances)
   {
@@ -156,8 +156,8 @@ function calculateCosts(data, commodity, inputDistance)
 
     if (dist.div) 
     { 
-      dist.div.innerText = '----- cost: ' + dist.cost + 
-        ' profit: ' + (commodity.sellPrice - (dist.cost / commodity.tier.producedPerCycle)) + ' ---------';
+      dist.div.innerText = '----- cost: ' + dist.cost + ' profit: ' 
+        + (commodity.sellPrice - (dist.cost / commodity.tier.producedPerCycle)) + ' ---------';
     }
   }
 }

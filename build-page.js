@@ -109,6 +109,8 @@ function updateCommodity(itemPriceElem)
   let item = window.data.commodities[itemPriceElem.getAttribute('commodity')];
   item.buyPrice = itemPriceElem.value;
 
+  // whenever the cost of this item changes, the cost of everything that
+  // consumes it also changes
   for (let callback of item.callbacks) { callback(); }
 }
 
@@ -117,7 +119,9 @@ function updateCommoditySellPrice(itemPriceElem)
   let item = window.data.commodities[itemPriceElem.getAttribute('commodity')];
   item.sellPrice = itemPriceElem.value;
 
-  calculateCosts(window.data, item);
+  // whenever the sell price of this item changes, the profitability
+  // of building it at each level changes
+  calculateCostsByDistance(window.data, item);
 }
 
 function updateWithNewTax(newTax = 0.15)
