@@ -124,7 +124,9 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
         function()
         {
           tuple.importCost = tuple.quantity * inp.buyPrice;
+          // console.log(tuple.input.name + ' base cost: ' + tuple.quantity + ' * ' + inp.buyPrice + ' = ' + tuple.importCost);
           tuple.importCost += data.tax * tuple.quantity * inp.tier.baseValue / 2;
+          // console.log(' plus taxes: ' + data.tax + ' * ' + tuple.quantity + ' * ' + inp.tier.baseValue + ' / 2 = ' + tuple.importCost);
 
           inpByD.commodities[inp.name] = tuple;
 
