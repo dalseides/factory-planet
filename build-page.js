@@ -19,6 +19,9 @@ function setup()
   {
     let tier = tiers[tierNo];
     let baseValue = tier.baseValue;
+    let tierDiv = document.createElement('div');
+    tierDiv.setAttribute('class', 'tier');
+    document.getElementsByTagName('body')[0].appendChild(tierDiv);
 
     for (let cmdt of tier.commodities)
     {
@@ -26,8 +29,9 @@ function setup()
       let enclosingDiv = document.createElement('div');
       enclosingDiv.commodity = cmdt;
       enclosingDiv.setAttribute('id', cmdt.name.replace(/ /g,'_'));
+      enclosingDiv.setAttribute('class', 'card');
       enclosingDiv.innerHTML = cmdt.name + ": ";
-      document.getElementsByTagName('body')[0].appendChild(enclosingDiv);
+      tierDiv.appendChild(enclosingDiv);
 
       // price paid for good
       let price = document.createElement('input');
@@ -53,6 +57,7 @@ function setup()
 
       if (cmdt.inputs.byDistance[0]) { displayInputs(enclosingDiv, cmdt); }
     }
+
   }
 }
 
