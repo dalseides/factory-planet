@@ -93,6 +93,18 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
     if (inpByD.commodities[inp.name] == undefined)
     {
       tuple = { input: inp, quantity: 0, importCost: 0 };
+      inpByD.commodities[inp.name] = tuple;
+
+      // add this tuple as a dependent on the input so that when the 
+      // input's price is updated, so is this tuple's
+      inp.callbacks.push
+        (
+          function()
+          {
+            calculateInputCost(data, tuple);
+            calculateCostsByDistance(data, grandcommodity);
+          }
+        );
     }
     else
     {
@@ -100,21 +112,11 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
     }
 
     // figure out how many of these we need
+    // this is additive, since multiple inputs may themselves 
+    // both require the same input
     tuple.quantity += neededPerInput * inp.tier.neededAsInput;
 
     tuple = calculateInputCost(data, tuple);
-    inpByD.commodities[inp.name] = tuple;
-
-    // also whenever the input price changes we should probably
-    // do something about that
-    inp.callbacks.push
-      (
-        function()
-        {
-          calculateInputCost(data, tuple);
-          calculateCostsByDistance(data, grandcommodity);
-        }
-      );
 
     if (inp.inputNames != null) 
       { setupInputs(data, grandcommodity, inp, distance + 1, tuple.quantity /inp.tier.producedPerCycle ); }
@@ -123,6 +125,7 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
   calculateCostsByDistance(data, grandcommodity);
 }
 
+// this determines the total cost of an input at a given level
 function calculateInputCost(data, tuple)
 {
   let inp = tuple.input;
@@ -140,6 +143,8 @@ function calculateInputCost(data, tuple)
   return tuple;
 }
 
+// this determines the total cost of a product at each level
+// and the profitability of building from that level
 function calculateCostsByDistance(data, commodity)
 {
   let distances = commodity.inputs.byDistance;
