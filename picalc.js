@@ -63,15 +63,13 @@ class Data
       commodity.sellPrice = commodity.tier.baseValue;
     }
 
-    // This loops through and adds inputs for the commodity.
+    // this loops through and adds inputs for the commodity.
     for (let commodity of Object.values(this.commodities))
     { 
       if (commodity.inputNames != null) 
       {
         setupInputs(this, commodity, commodity); 
-
-        // is there a way to do this without the verbose lambda declaration?
-        this.taxCallbacks.push( function() { setupInputs(window.data, commodity, commodity, 0, 0); });
+        this.taxCallbacks.push( function() { updateInputs(window.data, commodity, commodity); });
       }
     }
   }
@@ -120,6 +118,25 @@ function setupInputs(data, grandcommodity, commodity, distance = 0, neededPerInp
 
     if (inp.inputNames != null) 
       { setupInputs(data, grandcommodity, inp, distance + 1, tuple.quantity /inp.tier.producedPerCycle ); }
+  }
+
+  calculateCostsByDistance(data, grandcommodity);
+}
+
+/// this feels redundant. Is there a way to combine this with setupInputs?
+// I don't know of any good way to provide context-awareness without adding 
+// a specific flag, which seems grosser than this code duplication.
+function updateInputs(data, grandcommodity, commodity, distance = 0)
+{
+  let newInputs = commodity.inputNames.map(inputName => data.commodities[inputName]);
+  let inpByD = grandcommodity.inputs.byDistance[distance];
+
+  // now go through each input, recursively, until we have built up
+  // the total inputs for each level
+  for (let inp of newInputs)
+  { 
+    calculateInputCost(data, inpByD.commodities[inp.name]);
+    if (inp.inputNames != null) { updateInputs(data, grandcommodity, inp, distance + 1); }
   }
 
   calculateCostsByDistance(data, grandcommodity);
