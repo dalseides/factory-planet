@@ -11,9 +11,8 @@ function setup()
   taxDiv.appendChild(taxInput);
   document.getElementsByTagName('body')[0].appendChild(taxDiv);
   
+  // set up each of the tiers of commodities
   tiers = window.data.tiers;
-  commodities = window.data.commodities;
-
   for (let tierNo of Object.keys(tiers))
   {
     let tier = tiers[tierNo];
@@ -37,6 +36,7 @@ function setup()
       price.setAttribute('onchange', "updateCommodity(this);");
       enclosingDiv.appendChild(price);
 
+      // only tiers after tier 1 have interesting inputs
       if (tierNo > 1)
       {
         // price good is sold for
@@ -85,20 +85,23 @@ function displayInputs(div, cmdt)
       let elemName = id + '-' + comm.input.name.replace(/ /g,'_');
       let inputElem = undefined;
 
-      // lets find this node if it exists instead of making new one
+      // if this element already exists, we have nothing to do
       for (let child of distElem.childNodes) { if (child.id == elemName) { inputElem = child } }
       
-      // and let's create the element if it doesn't exist yet
+      // if it *doesn't* exist yet, create it.
       if (!inputElem)
       {
         inputElem = document.createElement('div');
         inputElem.setAttribute('id', elemName);
-        inputElem.needed = comm.quantity;
-        inputElem.totalPrice = comm.importCost;
         distElem.appendChild(inputElem);
 
-        comm.div = inputElem;
-        inputElem.innerText = " | " + inputElem.needed + " " + comm.input.name + " :: " + inputElem.totalPrice + " isk";
+        // we store the div with the commodity for ease of use by callbacks
+        comm.div = inputElem; 
+
+        inputElem.innerText = 
+          " | " + comm.quantity + " " 
+          + comm.input.name + " :: " 
+          + comm.importCost + " isk";
       }
     }
   }
@@ -124,13 +127,20 @@ function updateCommoditySellPrice(itemPriceElem)
   calculateCostsByDistance(window.data, item);
 }
 
+// the tax system operates off of callbacks; ALL commodities subscribe
+// to the tax callbacks system. 
+//
+// while this feels like we're creating tons of work for the browser to
+// do, updating individual elements--whose particular divs we have already
+// stored references to--is still a lot less work than the alternative:
+// throwing away the whole page and rebuilding it.
 function updateWithNewTax(newTax = 0.15)
 {
   window.data.tax = newTax;
-
   for (let callback of window.data.taxCallbacks) { callback(); }
 }
 
+// this is essentially the 'main' of this webapp
 function getData() 
 {
   var xmlhttp = new XMLHttpRequest();
@@ -138,7 +148,10 @@ function getData()
   {
     if (this.readyState == 4 && this.status == 200)
     {
+      // creates a new Data() object from picalc.js
       window.data = new Data(JSON.parse (this.responseText));
+
+      // this is essentially the view logic; it builds the HTML
       setup();
     }
   };
