@@ -1,3 +1,5 @@
+// this is essentially the 'view' logic for this webapp.
+// 'setup()' drives the generation of HTML
 function setup() 
 {
   // set up tax div
@@ -59,8 +61,8 @@ function displayInputs(div, cmdt)
   // set up div for all inputs of a given distance from the final product
   for (let distance in cmdt.inputs.byDistance)
   {
-    let dist = cmdt.inputs.byDistance[distance];
     let distElem = undefined;
+    let dist = cmdt.inputs.byDistance[distance];
     let id = cmdt.name.replace(/ /g,'_') + '_' + distance;
   
     if (document.getElementById(id)) 
@@ -73,8 +75,13 @@ function displayInputs(div, cmdt)
       distElem.setAttribute('id', id);
       let totalCost = document.createElement('div');
       totalCost.setAttribute('id', id + distance + '_price');
-      totalCost.innerText = '----- cost: ' + dist.cost + ' profit: ' + (cmdt.sellPrice - dist.cost) + ' ---------';
+      totalCost.innerText = 
+        '----- cost: ' + dist.cost + ' profit: ' 
+        + (cmdt.sellPrice - dist.cost) + ' ---------';
+
+      // we store the div with the distance for use by callbacks
       dist.div = totalCost;
+
       distElem.appendChild(totalCost);
       div.appendChild(distElem);
     }
