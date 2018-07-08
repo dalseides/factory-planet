@@ -12,6 +12,7 @@ function setup()
   taxInput.setAttribute('onchange', "updateWithNewTax(this.value);");
   taxDiv.appendChild(taxInput);
   document.getElementsByTagName('body')[0].appendChild(taxDiv);
+  window.data.revealedCommodities = [];
   
   // set up each of the tiers of commodities
   tiers = window.data.tiers;
@@ -27,11 +28,19 @@ function setup()
     {
       // outer div
       let enclosingDiv = document.createElement('div');
-      enclosingDiv.commodity = cmdt;
+      tierDiv.appendChild(enclosingDiv);
       enclosingDiv.setAttribute('id', cmdt.name.replace(/ /g,'_'));
       enclosingDiv.setAttribute('class', 'card');
-      enclosingDiv.innerHTML = cmdt.name + ": ";
-      tierDiv.appendChild(enclosingDiv);
+      enclosingDiv.setAttribute('commodity', cmdt.name);
+      enclosingDiv.innerHTML = cmdt.name;
+
+      let detailsDiv = document.createElement('div');
+      enclosingDiv.appendChild(detailsDiv);
+      cmdt.detailsDiv = detailsDiv;
+      detailsDiv.setAttribute('class', 'card-details');
+      detailsDiv.setAttribute('id', cmdt.name.replace(/ /g,'_') + '-inner');
+      detailsDiv.setAttribute('hidden', '');
+      enclosingDiv.setAttribute('onclick', "showChain(this);");
 
       // price paid for good
       let price = document.createElement('input');
@@ -40,7 +49,7 @@ function setup()
       price.setAttribute('value', baseValue);
       price.setAttribute('commodity', cmdt.name);
       price.setAttribute('onchange', "updateCommodity(this);");
-      enclosingDiv.appendChild(price);
+      detailsDiv.appendChild(price);
 
       // only tiers after tier 1 have interesting inputs
       if (tierNo > 1)
@@ -52,12 +61,11 @@ function setup()
         price.setAttribute('value', baseValue);
         price.setAttribute('commodity', cmdt.name);
         price.setAttribute('onchange', "updateCommoditySellPrice(this);");
-        enclosingDiv.appendChild(price);
+        detailsDiv.appendChild(price);
       }
 
-      if (cmdt.inputs.byDistance[0]) { displayInputs(enclosingDiv, cmdt); }
+      if (cmdt.inputs.byDistance[0]) { displayInputs(detailsDiv, cmdt); }
     }
-
   }
 }
 
@@ -150,6 +158,25 @@ function updateWithNewTax(newTax = 0.15)
 {
   window.data.tax = newTax;
   for (let callback of window.data.taxCallbacks) { callback(); }
+}
+
+function showChain(itemElem, toShow = true)
+{
+  let item = window.data.commodities[itemElem.getAttribute('commodity')];
+  hideCurrentCommodities();
+
+  if (toShow) itemElem.firstElementChild.removeAttribute('hidden');
+
+  window.data.revealedCommodities = [];
+  window.data.revealedCommodities.push(item);
+}
+
+function hideCurrentCommodities()
+{
+  for (let commodity of window.data.revealedCommodities)
+  {
+    commodity.detailsDiv.setAttribute('hidden', '');
+  }
 }
 
 // this is essentially the 'main' of this webapp
