@@ -32,24 +32,21 @@ function setup()
       enclosingDiv.setAttribute('id', cmdt.name.replace(/ /g,'_'));
       enclosingDiv.setAttribute('class', 'card');
       enclosingDiv.setAttribute('commodity', cmdt.name);
-      enclosingDiv.innerHTML = cmdt.name;
 
-      let detailsDiv = document.createElement('div');
-      enclosingDiv.appendChild(detailsDiv);
-      cmdt.detailsDiv = detailsDiv;
-      detailsDiv.setAttribute('class', 'card-details');
-      detailsDiv.setAttribute('id', cmdt.name.replace(/ /g,'_') + '-inner');
-      detailsDiv.setAttribute('hidden', '');
-      enclosingDiv.setAttribute('onclick', "showChain(this);");
+      let titleDiv = document.createElement('div');
+      titleDiv.setAttribute('class', 'card-title');
+      titleDiv.innerHTML = cmdt.name;
+      enclosingDiv.appendChild(titleDiv);
 
       // price paid for good
       let price = document.createElement('input');
       price.setAttribute('id', cmdt.name.replace(/ /g,'_') + '_buy_price');
+      price.setAttribute('label', 'Buy Price');
       price.setAttribute('type', 'number');
       price.setAttribute('value', baseValue);
       price.setAttribute('commodity', cmdt.name);
       price.setAttribute('onchange', "updateCommodity(this);");
-      detailsDiv.appendChild(price);
+      enclosingDiv.appendChild(price);
 
       // only tiers after tier 1 have interesting inputs
       if (tierNo > 1)
@@ -57,12 +54,24 @@ function setup()
         // price good is sold for
         price = document.createElement('input');
         price.setAttribute('id', cmdt.name.replace(/ /g,'_') + '_sell_price');
+        price.setAttribute('label', 'Sell Price');
         price.setAttribute('type', 'number');
         price.setAttribute('value', baseValue);
         price.setAttribute('commodity', cmdt.name);
         price.setAttribute('onchange', "updateCommoditySellPrice(this);");
-        detailsDiv.appendChild(price);
+        enclosingDiv.appendChild(price);
       }
+
+      let detailsDiv = document.createElement('div');
+      enclosingDiv.appendChild(detailsDiv);
+      cmdt.detailsDiv = detailsDiv;
+      cmdt.sticky = false;
+      detailsDiv.setAttribute('class', 'card-details');
+      detailsDiv.setAttribute('id', cmdt.name.replace(/ /g,'_') + '-inner');
+      detailsDiv.setAttribute('hidden', '');
+      enclosingDiv.setAttribute('onmouseover', "showDetails(this);");
+      enclosingDiv.setAttribute('onmouseout', "hideDetails(this);");
+      enclosingDiv.setAttribute('onclick', "setSticky(this);");
 
       if (cmdt.inputs.byDistance[0]) { displayInputs(detailsDiv, cmdt); }
     }
@@ -160,23 +169,22 @@ function updateWithNewTax(newTax = 0.15)
   for (let callback of window.data.taxCallbacks) { callback(); }
 }
 
-function showChain(itemElem, toShow = true)
+function setSticky(itemElem)
 {
   let item = window.data.commodities[itemElem.getAttribute('commodity')];
-  hideCurrentCommodities();
-
-  if (toShow) itemElem.firstElementChild.removeAttribute('hidden');
-
-  window.data.revealedCommodities = [];
-  window.data.revealedCommodities.push(item);
+  item.sticky = !item.sticky;
 }
 
-function hideCurrentCommodities()
+function showDetails(itemElem)
 {
-  for (let commodity of window.data.revealedCommodities)
-  {
-    commodity.detailsDiv.setAttribute('hidden', '');
-  }
+  let item = window.data.commodities[itemElem.getAttribute('commodity')];
+  item.detailsDiv.removeAttribute('hidden');
+}
+
+function hideDetails(itemElem)
+{
+  let item = window.data.commodities[itemElem.getAttribute('commodity')];
+  if (!item.sticky) item.detailsDiv.setAttribute('hidden', '');
 }
 
 // this is essentially the 'main' of this webapp
