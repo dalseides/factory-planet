@@ -5,5 +5,14 @@
     <script src="picalc.js"></script>
     <link rel="stylesheet" type="text/css" href="factory-planet-calculator.css">
   </head>
-  <body onload="getData();"></body>
+  <body onload="getData();">
+    <header class="instruction-banner" role="banner" onclick="
+        this.remove();
+        document.getElementById('banner-padding').remove();
+      ">
+      Hover to expand; click to freeze or unfreeze.
+      <span style="float: right; cursor: pointer">X</span>
+    </header>
+    <div id='banner-padding'></div>
+  </body>
 </html>

@@ -54,10 +54,10 @@ class Data
       commodity.tier.commodities.push(commodity);
 
       // This indexes commodities by tier
-      if (this.commodities.byTier[commodity.tier] == null) 
-        { this.commodities.byTier[commodity.tier] = [commodity]; }
-      else
+      if (this.commodities.byTier[commodity.tier]) 
         { this.commodities.byTier[commodity.tier].push(commodity); }
+      else
+        { this.commodities.byTier[commodity.tier] = [commodity]; }
 
       commodity.buyPrice = commodity.tier.baseValue;
       commodity.sellPrice = commodity.tier.baseValue;
@@ -152,7 +152,7 @@ function calculateInputCost(data, tuple)
   if (tuple.div) 
   { 
     tuple.div.innerText = 
-      " | " + tuple.quantity + " " 
+      tuple.quantity + " " 
       + inp.name + " :: " 
       + tuple.importCost + " isk"; 
   }
@@ -166,21 +166,23 @@ function calculateCostsByDistance(data, commodity)
 {
   let distances = commodity.inputs.byDistance;
   let exportTax = commodity.tier.baseValue * data.tax;
+  commodity.bestProfit = undefined;
+
   for (let distance in distances)
   {
     let dist = distances[distance];
     dist.cost = exportTax;
-    for (let cmdt in dist.commodities)
-    {
-      let commodity = dist.commodities[cmdt];
-      dist.cost += commodity.importCost;
-    }
+    for (let cmdt in dist.commodities) { dist.cost += dist.commodities[cmdt].importCost; }
 
-    if (dist.div) 
-    { 
-      dist.div.innerText = '----- cost: ' + dist.cost + ' profit: ' 
-        + (commodity.sellPrice - (dist.cost / commodity.tier.producedPerCycle)) + ' ---------';
-    }
+    // Figure out which tier is most profitable
+    dist.profit = (commodity.sellPrice - (dist.cost / commodity.tier.producedPerCycle));
+    if (commodity.bestProfit) { if (dist.profit > commodity.bestProfit) { commodity.bestProfit = dist.profit; }}
+    else { commodity.bestProfit = dist.profit; }
+
+    if (dist.div) { dist.div.innerText = 'cost: ' + dist.cost + ' profit: ' + dist.profit; }
   }
+
+  let bestProfitDiv = commodity.bestProfitDiv;
+  if (bestProfitDiv) { bestProfitDiv.innerText = 'Best Profit: ' + commodity.bestProfit; }
 }
 

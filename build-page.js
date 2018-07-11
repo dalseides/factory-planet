@@ -2,16 +2,20 @@
 // 'setup()' drives the generation of HTML
 function setup() 
 {
+  const parentDiv = document.createElement('div');
+  parentDiv.setAttribute('id', 'contents');
+  document.getElementsByTagName('body')[0].appendChild(parentDiv);
+
   // set up tax div
-  var taxDiv = document.createElement('div');
+  const taxDiv = document.createElement('div');
   taxDiv.innerText = 'Tax rate: ';
-  var taxInput = document.createElement('input');
+  const taxInput = document.createElement('input');
   taxInput.setAttribute('id', 'tax_rate');
   taxInput.setAttribute('type', 'number');
   taxInput.setAttribute('value', window.data.tax);
   taxInput.setAttribute('onchange', "updateWithNewTax(this.value);");
   taxDiv.appendChild(taxInput);
-  document.getElementsByTagName('body')[0].appendChild(taxDiv);
+  parentDiv.appendChild(taxDiv);
   window.data.revealedCommodities = [];
   
   // set up each of the tiers of commodities
@@ -22,7 +26,7 @@ function setup()
     let baseValue = tier.baseValue;
     let tierDiv = document.createElement('div');
     tierDiv.setAttribute('class', 'tier');
-    document.getElementsByTagName('body')[0].appendChild(tierDiv);
+    parentDiv.appendChild(tierDiv);
 
     for (let cmdt of tier.commodities)
     {
@@ -37,6 +41,16 @@ function setup()
       titleDiv.setAttribute('class', 'card-title');
       titleDiv.innerHTML = cmdt.name;
       enclosingDiv.appendChild(titleDiv);
+
+      // first-tier items don't *make* profit. Not profit worth speaking of at least.
+      if (tierNo > 1)
+      {
+        let bestProfitDiv = document.createElement('div');
+        bestProfitDiv.setAttribute('class', 'best-profit');
+        enclosingDiv.appendChild(bestProfitDiv);
+        bestProfitDiv.innerText = 'Best Profit: ' + cmdt.bestProfit;
+        cmdt.bestProfitDiv = bestProfitDiv;
+      }
 
       // price paid for good
       let price = document.createElement('input');
@@ -62,24 +76,24 @@ function setup()
         enclosingDiv.appendChild(price);
       }
 
-      let detailsDiv = document.createElement('div');
-      enclosingDiv.appendChild(detailsDiv);
-      cmdt.detailsDiv = detailsDiv;
-      cmdt.sticky = false;
-      detailsDiv.setAttribute('class', 'card-details');
-      detailsDiv.setAttribute('id', cmdt.name.replace(/ /g,'_') + '-inner');
-      detailsDiv.setAttribute('hidden', '');
-      enclosingDiv.setAttribute('onmouseover', "showDetails(this);");
-      enclosingDiv.setAttribute('onmouseout', "hideDetails(this);");
-      enclosingDiv.setAttribute('onclick', "setSticky(this);");
-
-      if (cmdt.inputs.byDistance[0]) { displayInputs(detailsDiv, cmdt); }
+      if (cmdt.inputs.byDistance[0]) { displayInputs(enclosingDiv, cmdt); }
     }
   }
 }
 
-function displayInputs(div, cmdt)
+function displayInputs(enclosingDiv, cmdt)
 {
+  let div = document.createElement('div');
+  enclosingDiv.appendChild(div);
+  cmdt.detailsDiv = div;
+  cmdt.sticky = false;
+  div.setAttribute('class', 'card-details');
+  div.setAttribute('id', cmdt.name.replace(/ /g,'_') + '-inner');
+  div.setAttribute('hidden', '');
+  enclosingDiv.setAttribute('onmouseover', "showDetails(this);");
+  enclosingDiv.setAttribute('onmouseout', "hideDetails(this);");
+  enclosingDiv.setAttribute('onclick', "setSticky(this);");
+
   // set up div for all inputs of a given distance from the final product
   for (let distance in cmdt.inputs.byDistance)
   {
@@ -87,19 +101,15 @@ function displayInputs(div, cmdt)
     let dist = cmdt.inputs.byDistance[distance];
     let id = cmdt.name.replace(/ /g,'_') + '_' + distance;
   
-    if (document.getElementById(id)) 
-    {  
-      distElem = document.getElementById(id);
-    }
-    else 
+    if (!(distElem = document.getElementById(id)))
     {
       distElem = document.createElement('div');
       distElem.setAttribute('id', id);
       let totalCost = document.createElement('div');
       totalCost.setAttribute('id', id + distance + '_price');
       totalCost.innerText = 
-        '----- cost: ' + dist.cost + ' profit: ' 
-        + (cmdt.sellPrice - dist.cost) + ' ---------';
+        'cost: ' + dist.cost + ' profit: ' 
+        + (cmdt.sellPrice - dist.cost);
 
       // we store the div with the distance for use by callbacks
       dist.div = totalCost;
@@ -128,7 +138,7 @@ function displayInputs(div, cmdt)
         comm.div = inputElem; 
 
         inputElem.innerText = 
-          " | " + comm.quantity + " " 
+          comm.quantity + " " 
           + comm.input.name + " :: " 
           + comm.importCost + " isk";
       }
@@ -176,10 +186,7 @@ function setSticky(itemElem)
 }
 
 function showDetails(itemElem)
-{
-  let item = window.data.commodities[itemElem.getAttribute('commodity')];
-  item.detailsDiv.removeAttribute('hidden');
-}
+  { window.data.commodities[itemElem.getAttribute('commodity')].detailsDiv.removeAttribute('hidden'); }
 
 function hideDetails(itemElem)
 {
