@@ -108,8 +108,7 @@ function displayInputs(enclosingDiv, cmdt)
       let totalCost = document.createElement('div');
       totalCost.setAttribute('id', id + distance + '_price');
       totalCost.innerText = 
-        'cost: ' + dist.cost + ' profit: ' 
-        + (cmdt.sellPrice - dist.cost);
+        'cost: ' + dist.cost + ' profit: ' + dist.profit;
 
       // we store the div with the distance for use by callbacks
       dist.div = totalCost;
